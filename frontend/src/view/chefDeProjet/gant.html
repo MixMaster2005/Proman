@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagramme de Gantt avec D3.js</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#f72585',
+                        dark: '#181824',
+                        'dark-blue': '#232946',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- D3.js et jQuery -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #181824 0%, #232946 100%);
+            min-height: 100vh;
+            color: #f4f4f8;
+        }
+
+        .axis path,
+        .axis line,
+        .axis text {
+            stroke: #cbd5e0; /* gray-400 */
+            fill: #cbd5e0; /* gray-400 for text */
+        }
+
+        .task-bar {
+            transition: all 0.3s ease-in-out;
+        }
+
+        .task-bar:hover {
+            opacity: 0.8;
+            stroke-width: 2px; /* Ensure stroke-width has a unit */
+        }
+        .task-label {
+             fill: #f4f4f8; /* Light text for labels */
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 md:p-6">
+    <div class="w-full max-w-5xl xl:max-w-6xl">
+        <h2 class="text-2xl md:text-3xl font-bold mb-6 text-center">Diagramme de Gantt</h2>
+        <div class="rounded-lg shadow-xl bg-dark-blue p-4 md:p-6 overflow-x-auto">
+            <svg class="min-w-full h-auto"></svg>
+        </div>
+    </div>
+
+    <script>
+        function convertDayStringToDate(dayStr, startDate) {
+            const dayNumber = parseInt(dayStr.replace("Day", "").trim(), 10);
+            const date = new Date(startDate);
+            date.setDate(date.getDate() + dayNumber);
+            return date;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const id_projet = urlParams.get("id_projet");
+
+        $.ajax({
+            url: `/api/projets/${id_projet}/gantt`,
+            method: 'GET',
+            success: function (data) {
+                console.log("Données brutes :", data);
+
+                const svg = d3.select("svg");
+                const margin = { top: 20, right: 30, bottom: 30, left: 150 };
+                const width = 1000 - margin.left - margin.right;
+                const height = data.length * 40;
+
+                const projectStartDate = new Date(); // aujourd'hui
+
+                data.forEach(d => {
+                    d.debut = convertDayStringToDate(d.start, projectStartDate);
+                    d.fin = convertDayStringToDate(d.end, projectStartDate);
+                    d.nom = d.name;
+                });
+
+                const startDate = d3.min(data, d => d.debut);
+                const endDate = d3.max(data, d => d.fin);
+
+                const x = d3.scaleTime()
+                    .domain([startDate, endDate])
+                    .range([0, width]);
+
+                const y = d3.scaleBand()
+                    .domain(data.map(d => d.nom))
+                    .range([0, height])
+                    .padding(0.1);
+
+                const xAxis = d3.axisBottom(x).ticks(d3.timeDay.every(1)).tickFormat(d3.timeFormat("%d/%m"));
+                const yAxis = d3.axisLeft(y);
+
+                svg.attr("height", height + margin.top + margin.bottom);
+
+                svg.append("g")
+                    .attr("transform", `translate(${margin.left},${margin.top + height})`)
+                    .call(xAxis)
+                    .attr("class", "axis");
+
+                svg.append("g")
+                    .attr("transform", `translate(${margin.left},${margin.top})`)
+                    .call(yAxis)
+                    .attr("class", "axis");
+
+                svg.selectAll(".task-bar")
+                    .data(data)
+                    .enter()
+                    .append("rect")
+                    .attr("class", d => `task-bar ${d.critique ? 'fill-red-600' : 'fill-blue-400'} stroke-black`)
+                    .attr("x", d => x(d.debut) + margin.left)
+                    .attr("y", d => y(d.nom) + margin.top)
+                    .attr("width", d => x(d.fin) - x(d.debut))
+                    .attr("height", y.bandwidth());
+
+                svg.selectAll(".task-label")
+                    .data(data)
+                    .enter()
+                    .append("text")
+                    .attr("class", "task-label")
+                    .attr("x", d => x(d.debut) + margin.left + 5)
+                    .attr("y", d => y(d.nom) + margin.top + y.bandwidth() / 2)
+                    .attr("dy", "0.35em")
+                    .attr("fill", "#facc15") // texte jaune clair (équiv. Tailwind yellow-400)
+                    .attr("font-size", "12px")
+                    .text(d => d.nom);
+            },
+            error: function () {
+                console.error("Erreur de chargement du diagramme de Gantt.");
+            }
+        });
+    </script>
+</body>
+
+</html>

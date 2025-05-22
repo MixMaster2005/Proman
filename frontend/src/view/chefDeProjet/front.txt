@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projet - Gestion des Tâches</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<style>
+    .tool-iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+            display: none;
+            margin-top: 20px;
+        }
+</style>
+<body>
+    <div class="container mt-4">
+        <h2 class="text-center mb-4">Gestion des Tâches du Projet</h2>
+
+        <!-- Liens vers les outils complémentaires -->
+        <div class="mb-4 text-center">
+            <button class="btn btn-outline-primary m-2 tool-btn" data-tool="pert">Diagramme PERT</button>
+            <button class="btn btn-outline-secondary m-2 tool-btn" data-tool="gant">Diagramme Gantt</button>
+            <button class="btn btn-outline-info m-2 tool-btn" data-tool="calendar">Calendrier</button>
+            <button class="btn btn-outline-success m-2 tool-btn" data-tool="avancement">Avancement</button>
+        </div>
+        <iframe id="toolIframe" class="tool-iframe"></iframe>
+
+        <!-- Formulaire pour ajouter une tâche -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Ajouter une Tâche</h5>
+                <form id="addTaskForm">
+                    <div class="mb-3">
+                        <label for="libelle" class="form-label">Libellé</label>
+                        <input type="text" class="form-control" id="libelle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="duree" class="form-label">Durée (en heures)</label>
+                        <input type="number" class="form-control" id="duree" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="statut" class="form-label">Statut</label>
+                        <select class="form-control" id="statut" required>
+                            <option value="0">Non achevé</option>
+                            <option value="1">Achévé</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Ajouter la Tâche</button>
+                </form>
+            </div>
+        </div>
+        <!-- Liste des collaborateurs -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title d-flex justify-content-between">
+                    Collaborateurs du Projet
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                        data-bs-target="#addCollaboratorModal">
+                        Ajouter un collaborateur
+                    </button>
+                </h5>
+                <ul id="collaboratorsList" class="list-group">
+                    <!-- Collaborateurs insérés dynamiquement ici -->
+                </ul>
+            </div>
+        </div>
+
+
+        <!-- Liste des tâches -->
+        <div id="tasksContainer" class="row">
+            <!-- Tâches insérées dynamiquement ici -->
+        </div>
+
+        <!-- Modale pour ajouter un collaborateur -->
+        <div class="modal fade" id="addCollaboratorModal" tabindex="-1" aria-labelledby="addCollaboratorLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <form id="addCollaboratorForm" class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addCollaboratorLabel">Ajouter un collaborateur</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="email_contributeur" class="form-label">Email du Contributeur</label>
+                            <input type="email" class="form-control" id="email_contributeur" required>
+                        </div>
+                        
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Ajouter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modale : Ajouter tâches antérieures -->
+        <div class="modal fade" id="assignPreviousTasksModal" tabindex="-1" aria-labelledby="assignPreviousTasksLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <form id="assignPreviousTasksForm" class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="assignPreviousTasksLabel">Ajouter des Tâches Antérieures</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="taskIdForPredecessors">
+                        <div class="mb-3">
+                            <label for="previousTaskIds" class="form-label">ID(s) des Tâches Antérieures (séparés par
+                                des virgules)</label>
+                            <input type="text" class="form-control" id="previousTaskIds" placeholder="Ex: 3, 7, 8"
+                                required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-secondary">Ajouter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modale : Assigner un collaborateur à une tâche -->
+        <div class="modal fade" id="assignCollaboratorModal" tabindex="-1" aria-labelledby="assignCollaboratorLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <form id="assignCollaboratorForm" class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="assignCollaboratorLabel">Assigner des collaborateurs</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="taskIdForCollaborator">
+                        <div id="collaboratorsCheckboxList" class="mb-3">
+                            <!-- Cases à cocher insérées dynamiquement ici -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Assigner</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bootstrap JS for modal functionality -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+
+    </div>
+
+    <script>
+
+        $(document).ready(function () {
+            const token = localStorage.getItem('token');
+            const urlParams = new URLSearchParams(window.location.search);
+            const id_projet = urlParams.get("id_projet");
+
+            // Initialiser les liens
+            //$("#pertLink").attr("href", `/page/ChefDeProjetDashboard/projet/pert?id_projet=${id_projet}`);
+            //$("#ganttLink").attr("href", `/page/ChefDeProjetDashboard/projet/gant?id_projet=${id_projet}`);
+            //$("#calendarLink").attr("href", `/page/ChefDeProjetDashboard/projet/calendar?id_projet=${id_projet}`);
+            //$("#progressLink").attr("href", `/page/ChefDeProjetDashboard/projet/avancement?id_projet=${id_projet}`);
+
+            // Charger les tâches du projet
+    function loadTasks() {
+    $.ajax({
+        url: `/api/projets/${id_projet}/taches-collaborateurs`,
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function (tasks) {
+            $('#tasksContainer').empty();
+            console.log(tasks);
+            if (Array.isArray(tasks) && tasks.length > 0) {
+                tasks.forEach(task => {
+                    const collaborateurs = task.collaborateurs.map(c => c.nom).join(", ") || "Aucun collaborateur";
+                    $('#tasksContainer').append(`
+                        <div class="col-md-4 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">${task.libelle}</h5>
+                                    <p class="card-text">Durée : ${task.duree}h</p>
+                                    <p class="card-text">Statut : ${task.statut === 1 ? 'Terminé' : 'Non terminé'}</p>
+                                    <p class="card-text">Collaborateurs : ${collaborateurs}</p>
+                                    <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#assignCollaboratorModal" data-task-id="${task.id_tache}">
+                                        Assigner un collaborateur
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#assignPreviousTasksModal" data-task-id="${task.id_tache}">
+                                        Ajouter tâche(s) antérieure(s)
+                                    </button>
+                                    <button class="btn btn-primary btn-sm updateStatusBtn" data-id="${task.id_tache}" data-status="${task.statut}">
+                                        ${task.statut === 1 ? 'Marquer comme non terminé' : 'Marquer comme terminé'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                });
+
+                // Ajouter un gestionnaire d'événements pour les boutons de mise à jour du statut
+                $('.updateStatusBtn').click(function () {
+                    const taskId = $(this).data('id');
+                    const currentStatus = $(this).data('status');
+                    const newStatus = currentStatus === 1 ? 0 : 1;
+
+                    $.ajax({
+                        url: `/api/taches/${taskId}/statut`,
+                        method: 'PATCH',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json'
+                        },
+                        data: JSON.stringify({ statut: newStatus }),
+                        success: function () {
+                            alert('Statut mis à jour avec succès !');
+                            loadTasks(); // Recharger les tâches après la mise à jour
+                        },
+                        error: function () {
+                            alert('Erreur lors de la mise à jour du statut.');
+                        }
+                    });
+                });
+            } else {
+                $('#tasksContainer').html('<p class="text-muted text-center">Aucune tâche pour ce projet.</p>');
+            }
+        },
+        error: function (error) {
+            console.error(error);
+            alert("Erreur lors du chargement des tâches.");
+        }
+    });
+}
+
+
+            // Soumission du formulaire d’ajout de tâche
+            $('#addTaskForm').submit(function (e) {
+                e.preventDefault();
+                const libelle = $('#libelle').val();
+                const duree = $('#duree').val();
+                const statut = $('#statut').val();
+
+                $.ajax({
+                    url: '/api/taches',
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    },
+                    contentType: 'application/json',
+                    data: JSON.stringify({ libelle, duree, statut, id_projet }),
+                    success: function () {
+                        alert('Tâche ajoutée avec succès !');
+                        $('#addTaskForm')[0].reset();
+                        loadTasks();
+                    },
+                    error: function () {
+                        alert('Erreur lors de l\'ajout de la tâche.');
+                    }
+                });
+            });
+
+            loadTasks();
+
+            // Charger les collaborateurs du projet
+            function loadCollaborators() {
+                $.ajax({
+                    url: `/api/projets/${id_projet}/collaborateurs`,
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    },
+                    success: function (collaborateurs) {
+                        $('#collaboratorsList').empty();
+                        if (Array.isArray(collaborateurs) && collaborateurs.length > 0) {
+                            collaborateurs.forEach(c => {
+                                $('#collaboratorsList').append(`<li class="list-group-item">Contributeur #${c.id_contributeur} - ${c.nom ?? ''} ${c.prenom ?? ''}</li>`);
+                            });
+                        } else {
+                            $('#collaboratorsList').html('<li class="list-group-item text-muted">Aucun collaborateur actuellement.</li>');
+                        }
+                    },
+                    error: function () {
+                        alert("Erreur lors du chargement des collaborateurs.");
+                    }
+                });
+            }
+
+            // Ajouter un collaborateur
+            $('#addCollaboratorForm').submit(function (e) {
+    e.preventDefault();
+    const email = $('#email_contributeur').val();
+
+    // Étape 1 : Récupérer le contributeur via son email
+    $.ajax({
+        url: `/api/contributeur/email/${encodeURIComponent(email)}`,
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function (contributeur) {
+            if (!contributeur || !contributeur.id_contributeur) {
+                alert("Aucun contributeur trouvé avec cet email.");
+                return;
+            }
+
+            const id_contributeur = contributeur.id_contributeur;
+
+            // Étape 2 : Ajouter le contributeur au projet
+            $.ajax({
+                url: `/api/collaborer`,
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                },
+                contentType: 'application/json',
+                data: JSON.stringify({ id_projet, id_contributeur }),
+                success: function () {
+                    alert('Collaborateur ajouté avec succès !');
+                    $('#addCollaboratorForm')[0].reset();
+                    $('#addCollaboratorModal').modal('hide');
+                    loadCollaborators();
+                },
+                error: function () {
+                    alert("Erreur lors de l'ajout du collaborateur.");
+                }
+            });
+        },
+        error: function () {
+            alert("Impossible de trouver le contributeur avec cet email.");
+        }
+    });
+}); loadCollaborators();
+$('#assignCollaboratorModal').on('show.bs.modal', function (event) {
+    const button = $(event.relatedTarget);
+    const taskId = button.data('task-id');
+    $('#taskIdForCollaborator').val(taskId);
+
+    // Charger les collaborateurs et les afficher sous forme de cases à cocher
+    $.ajax({
+        url: `/api/projets/${id_projet}/collaborateurs`,
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function (collaborateurs) {
+            const checkboxList = $('#collaboratorsCheckboxList');
+            checkboxList.empty();
+            if (Array.isArray(collaborateurs) && collaborateurs.length > 0) {
+                collaborateurs.forEach(c => {
+                    checkboxList.append(`
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="${c.id_contributeur}" id="collaborator_${c.id_contributeur}">
+                            <label class="form-check-label" for="collaborator_${c.id_contributeur}">
+                                ${c.nom ?? ''} ${c.prenom ?? ''} (${c.email})
+                            </label>
+                        </div>
+                    `);
+                });
+            } else {
+                checkboxList.html('<p class="text-muted">Aucun collaborateur disponible.</p>');
+            }
+        },
+        error: function () {
+            alert("Erreur lors du chargement des collaborateurs.");
+        }
+    });
+});
+
+// Soumettre le formulaire pour assigner les collaborateurs sélectionnés
+$('#assignCollaboratorForm').submit(function (e) {
+    e.preventDefault();
+    const id_tache = $('#taskIdForCollaborator').val();
+    const selectedCollaborators = [];
+    $('#collaboratorsCheckboxList input:checked').each(function () {
+        selectedCollaborators.push($(this).val());
+    });
+
+    $.ajax({
+        url: `/api/assigner`,
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        contentType: 'application/json',
+        data: JSON.stringify({ id_tache, collaborateurs: selectedCollaborators }),
+        success: function () {
+            alert('Collaborateurs assignés avec succès !');
+            $('#assignCollaboratorForm')[0].reset();
+            $('#assignCollaboratorModal').modal('hide');
+        },
+        error: function () {
+            alert("Erreur lors de l'assignation.");
+        }
+    });
+});
+
+            // Récupérer l'ID de tâche cliqué pour les assignations
+            $('#assignCollaboratorModal').on('show.bs.modal', function (event) {
+                const button = $(event.relatedTarget);
+                const taskId = button.data('task-id');
+                $('#taskIdForCollaborator').val(taskId);
+            });
+
+            $('#assignPreviousTasksModal').on('show.bs.modal', function (event) {
+                const button = $(event.relatedTarget);
+                const taskId = button.data('task-id');
+                $('#taskIdForPredecessors').val(taskId);
+            });
+
+            // Formulaire : assigner un collaborateur
+            $('#assignCollaboratorForm').submit(function (e) {
+                e.preventDefault();
+                const id_tache = $('#taskIdForCollaborator').val();
+                const id_contributeur = $('#collaboratorIdToAssign').val();
+
+                $.ajax({
+                    url: `/api/assigner`,
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    },
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id_tache, id_contributeur }),
+                    success: function () {
+                        alert('Collaborateur assigné avec succès !');
+                        $('#assignCollaboratorForm')[0].reset();
+                        $('#assignCollaboratorModal').modal('hide');
+                    },
+                    error: function () {
+                        alert("Erreur lors de l'assignation.");
+                    }
+                });
+            });
+
+            // Formulaire : ajouter tâches antérieures
+            $('#assignPreviousTasksForm').submit(function (e) {
+                e.preventDefault();
+                const id_tache = $('#taskIdForPredecessors').val();
+                const ids_precedentes = $('#previousTaskIds').val().split(',').map(id => parseInt(id.trim()));
+
+                $.ajax({
+                    url: `/api/taches/anterieures`,
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    },
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id_tache, precedentes: ids_precedentes }),
+                    success: function () {
+                        alert('Tâches antérieures ajoutées avec succès !');
+                        $('#assignPreviousTasksForm')[0].reset();
+                        $('#assignPreviousTasksModal').modal('hide');
+                    },
+                    error: function () {
+                        alert("Erreur lors de l'ajout des tâches antérieures.");
+                    }
+                });
+            });
+
+        });
+        $(document).ready(function () {
+                const token = localStorage.getItem('token');
+                const urlParams = new URLSearchParams(window.location.search);
+                const id_projet = urlParams.get("id_projet");
+
+                // Boutons vers outils : chargement dans iframe
+                $('.tool-btn').on('click', function () {
+                    const tool = $(this).data('tool');
+                    const iframe = $('#toolIframe');
+                    const url = `/page/ChefDeProjetDashboard/projet/${tool}?id_projet=${id_projet}`;
+                    iframe.attr('src', url).show();
+                    $('html, body').animate({
+                        scrollTop: iframe.offset().top - 50
+                    }, 500);
+                });
+
+                // ... (vous pouvez continuer ici vos autres fonctions comme loadTasks, etc.)
+            });
+    </script>
+</body>
+
+</html>

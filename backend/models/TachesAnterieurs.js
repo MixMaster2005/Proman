@@ -15,6 +15,11 @@ class TachesAnterieures extends Model {
         const sql = "SELECT * FROM taches_anterieures";
         return await this.db.query(sql);
     }
+    async readByTache(id_tache) {
+        const sql = "SELECT * FROM taches_anterieures WHERE id_tache = ?";
+        const [rows] = await this.db.query(sql, [id_tache]);
+        return rows;
+    }
 
     async delete(idAnt) {
         const sql = "DELETE FROM taches_anterieures WHERE id_ant = ?";

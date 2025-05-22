@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proman - Gestion des Tâches</title>
+  <!-- Tailwind CSS & Dark Mode -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans">
+  <div class="container mx-auto p-6">
+    <h2 class="text-3xl font-bold text-center mb-8 relative inline-block">
+      <span class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-36 h-1 bg-indigo-500 rounded-lg"></span>
+      Gestion des Tâches
+    </h2>
+
+    <!-- Tâches Container -->
+    <div id="tasksContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Les tâches seront insérées ici -->
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(function() {
+      const token = localStorage.getItem('token');
+      const urlParams = new URLSearchParams(window.location.search);
+      const projectId = urlParams.get('id_projet');
+      const id_contributeur = localStorage.getItem('id_contributeur');
+
+      function loadTasks() {
+        $.ajax({
+          url: `/api/projet/${projectId}/contributeur/${id_contributeur}/taches`,
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + token },
+          success: tasks => {
+            const container = $('#tasksContainer').empty();
+            if (Array.isArray(tasks) && tasks.length) {
+              tasks.forEach(task => {
+                container.append(`
+                  <div class="bg-gray-800 rounded-2xl shadow-lg p-6 flex flex-col justify-between hover:bg-gray-700 transition">
+                    <div>
+                      <h5 class="text-xl font-semibold text-indigo-300 mb-2">${task.libelle}</h5>
+                      <p class="text-gray-400 mb-1"><span class="font-medium">Durée :</span> ${task.duree} heures</p>
+                      <p class="text-gray-400 mb-3"><span class="font-medium">Statut :</span> 
+                        <span class="${task.statut === 'Terminé' ? 'text-green-400' : 'text-yellow-400'}">
+                          ${task.statut}
+                        </span>
+                      </p>
+                    </div>
+                    <div class="mt-4">
+                      <button 
+                        class="w-full py-2 bg-indigo-500 hover:bg-indigo-600 rounded-lg text-white text-sm transition"
+                        data-id="${task.id_tache}" id="viewDetailsBtn">
+                        Détails
+                      </button>
+                    </div>
+                  </div>
+                `);
+              });
+            } else {
+              $('#tasksContainer').html(
+                '<p class="col-span-full text-center text-gray-500">Aucune tâche ne vous est assignée.</p>'
+              );
+            }
+          },
+          error: () => {
+            $('#tasksContainer').html(
+              '<p class="col-span-full text-center text-red-500">Erreur de chargement des tâches.</p>'
+            );
+          }
+        });
+      }
+
+      loadTasks();
+    });
+  </script>
+</body>
+</html>

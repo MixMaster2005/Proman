@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagramme PERT avec D3.js</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#f72585',
+                        dark: '#181824',
+                        'dark-blue': '#232946',
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #181824 0%, #232946 100%);
+            min-height: 100vh;
+            color: #f4f4f8;
+        }
+
+        svg {
+            display: block;
+        }
+
+        .node {
+            fill: #3b82f6; /* primary color */
+            stroke: #f4f4f8; /* light text color */
+            stroke-width: 2;
+        }
+
+        .link {
+            stroke: #6b7280; /* gray-500 */
+            stroke-width: 2;
+        }
+
+        .critique {
+            stroke: #ef4444; /* red-500 */
+            stroke-width: 3;
+        }
+
+        .label,
+        .task-name,
+        .duration,
+        .total-duration {
+            text-anchor: middle;
+            fill: #f4f4f8; /* light text color */
+        }
+        .task-name {
+            font-weight: bold;
+        }
+        .total-duration {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 md:p-6">
+    <h2 class="text-2xl md:text-3xl font-bold mb-6 text-center">Diagramme PERT</h2>
+    <div class="w-full max-w-5xl xl:max-w-6xl bg-dark-blue p-4 md:p-6 rounded-lg shadow-xl overflow-x-auto">
+        <svg id="pert-svg" class="min-w-full h-auto" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const id_projet = urlParams.get("id_projet");
+
+        $.ajax({
+            url: `/api/projets/${id_projet}/pert`,
+            method: 'GET',
+            success: function (data) {
+                const padding = 100;
+                const y = 100;
+                const unit = 20;
+                const maxFin = Math.max(...data.map(t => t.TE + t.duree));
+                const endOffset = 40;
+                const svgWidth = (maxFin + 1) * unit + padding * 2;
+                const svgHeight = 200;
+
+                const svg = d3.select("#pert-svg")
+                    .attr("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
+
+                const events = [{
+                    id: 'start',
+                    label: 'Début',
+                    x: padding,
+                    y,
+                    cumulHeures: 0
+                }];
+
+                data.forEach(t => {
+                    const startX = t.TE * unit + padding;
+                    let endX = (t.TE + t.duree) * unit + padding;
+                    if (t.TE + t.duree === maxFin) {
+                        endX += endOffset; // décale la fin si c'est la dernière tâche
+                    }
+
+                    events.push({
+                        id: `start-${t.id}`,
+                        label: '',
+                        x: startX,
+                        y,
+                        cumulHeures: t.TE
+                    });
+
+                    events.push({
+                        id: `end-${t.id}`,
+                        label: t.nom,
+                        x: endX,
+                        y,
+                        cumulHeures: t.TE + t.duree
+                    });
+                });
+
+                const links = data.map(t => {
+                    const fromX = t.TE * unit + padding;
+                    const toX = (t.TE + t.duree) * unit + padding;
+                    return {
+                        fromX,
+                        toX,
+                        y,
+                        duree: t.duree,
+                        critique: t.critique
+                    };
+                });
+
+                svg.selectAll(".link")
+                    .data(links)
+                    .enter()
+                    .append("line")
+                    .attr("class", d => d.critique ? "link critique" : "link")
+                    .attr("x1", d => d.fromX)
+                    .attr("y1", d => d.y)
+                    .attr("x2", d => d.toX)
+                    .attr("y2", d => d.y);
+
+                svg.selectAll(".duration")
+                    .data(links)
+                    .enter()
+                    .append("text")
+                    .attr("class", "duration")
+                    .attr("x", d => (d.fromX + d.toX) / 2)
+                    .attr("y", d => d.y - 15)
+                    .text(d => d.duree + "h");
+
+                svg.selectAll(".node")
+                    .data(events)
+                    .enter()
+                    .append("circle")
+                    .attr("class", "node")
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y)
+                    .attr("r", 20);
+
+                svg.selectAll(".task-name")
+                    .data(events.filter(d => d.label !== ""))
+                    .enter()
+                    .append("text")
+                    .attr("class", "task-name")
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y + 35)
+                    .text(d => d.label);
+
+                svg.selectAll(".total-duration")
+                    .data(events)
+                    .enter()
+                    .append("text")
+                    .attr("class", "total-duration")
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y + 5)
+                    .text(d => d.cumulHeures + "h");
+            },
+            error: function () {
+                console.error("Erreur de chargement du diagramme PERT.");
+            }
+        });
+    </script>
+</body>
+
+</html>

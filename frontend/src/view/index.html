@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proman - Gestion de projet informatique</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <!-- Header / Hero -->
+  <header class="bg-white shadow">
+    <div class="container mx-auto px-6 py-16 text-center">
+      <h1 class="text-4xl font-extrabold text-indigo-600 mb-4">Proman</h1>
+      <p class="text-xl mb-8">La solution ultime pour gérer vos projets informatiques avec efficacité et sérénité.</p>
+      <div class="flex justify-center gap-4">
+        <a href="/page/signup" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">S'inscrire</a>
+        <a href="/page/login" class="px-6 py-3 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition">Se connecter</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Features Section -->
+  <section class="container mx-auto px-6 py-16">
+    <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">Fonctionnalités clés</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+        <h3 class="text-2xl font-semibold mb-4">Diagramme de Gantt</h3>
+        <p>Visualisez vos tâches et jalons en un coup d'œil grâce à un diagramme dynamique et interactif.</p>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+        <h3 class="text-2xl font-semibold mb-4">Calendrier Intégré</h3>
+        <p>Organisez vos événements, rappels et réunions directement depuis notre calendrier intuitif.</p>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+        <h3 class="text-2xl font-semibold mb-4">Analyse PERT & Suivi</h3>
+        <p>Cartographiez les dépendances de tâches et suivez l'avancement de vos projets en temps réel.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section class="bg-gray-100 py-16">
+    <div class="container mx-auto px-6">
+      <h2 class="text-3xl font-bold text-center text-gray-900 mb-8">Plans & Tarifs</h2>
+      <p class="text-center text-gray-700 mb-12">Commencez gratuitement avec nos fonctionnalités essentielles. Des offres plus complètes seront bientôt disponibles.</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Free Plan -->
+        <div class="bg-white p-6 rounded-xl shadow">
+          <h3 class="text-2xl font-semibold mb-4">Plan Gratuit</h3>
+          <p class="mb-6">Inclut Gantt, calendrier et suivi PERT de base.</p>
+          <ul class="mb-6 space-y-2">
+            <li>✅ Diagramme de Gantt</li>
+            <li>✅ Calendrier Intégré</li>
+            <li>✅ Analyse PERT</li>
+          </ul>
+          <a href="#" class="block text-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Commencer Gratuitement</a>
+        </div>
+        <!-- Upcoming Paid Plans -->
+        <div class="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="bg-white p-6 rounded-xl shadow">
+            <h3 class="text-2xl font-semibold mb-4">Pro</h3>
+            <p class="mb-6">Fonctionnalités avancées et support prioritaire.</p>
+            <p class="text-xl font-bold mb-6">20€ - 30€ / mois</p>
+            <ul class="mb-6 space-y-2">
+              <li>⭐ Rapports personnalisés</li>
+              <li>⭐ Notifications avancées</li>
+              <li>⭐ Collaboration en temps réel</li>
+            </ul>
+            <a href="#" class="block text-center px-6 py-3 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition">Bientôt disponible</a>
+          </div>
+          <div class="bg-white p-6 rounded-xl shadow">
+            <h3 class="text-2xl font-semibold mb-4">Entreprise</h3>
+            <p class="mb-6">Solution complète pour grandes équipes et intégrations.</p>
+            <p class="text-xl font-bold mb-6">50€ - 80€ / mois</p>
+            <ul class="mb-6 space-y-2">
+              <li>🏢 Gestion multi-projets</li>
+              <li>🏢 Intégrations API</li>
+              <li>🏢 SLA et support dédié</li>
+            </ul>
+            <a href="#" class="block text-center px-6 py-3 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition">Bientôt disponible</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Marketing Section -->
+  <section class="bg-indigo-600 text-white py-16">
+    <div class="container mx-auto px-6 text-center">
+      <h2 class="text-3xl font-bold mb-4">Pourquoi choisir Proman ?</h2>
+      <p class="mb-8">Adapté aux équipes de toutes tailles, Proman facilite la collaboration, optimise vos délais et augmente votre productivité.</p>
+      <a href="#" class="inline-block px-8 py-4 bg-white text-indigo-600 font-semibold rounded-lg hover:bg-gray-100 transition">Découvrir nos offres</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-white mt-16 border-t">
+    <div class="container mx-auto px-6 py-6 text-center text-sm text-gray-500">
+      © 2025 Proman. Tous droits réservés.
+    </div>
+  </footer>
+</body>
+</html>

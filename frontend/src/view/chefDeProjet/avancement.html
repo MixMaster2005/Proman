@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avancement du Projet</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',
+            secondary: '#f72585',
+            dark: '#181824',
+            'dark-blue': '#232946',
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #181824 0%, #232946 100%);
+      min-height: 100vh;
+      color: #f4f4f8;
+    }
+
+    svg {
+      transform: rotate(-90deg);
+    }
+
+    .circle-background {
+      fill: none;
+      stroke: #4a5568; /* gray-600 */
+      stroke-width: 10;
+    }
+
+    .circle-progress {
+      fill: none;
+      stroke: #3b82f6; /* primary color */
+      stroke-width: 10;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.5s ease;
+    }
+  </style>
+</head>
+
+<body class="flex flex-col items-center justify-center p-6">
+
+  <h2 class="text-3xl font-bold mb-8 text-center">Avancement du Projet</h2>
+
+  <div id="progress-container" class="relative w-48 h-48 md:w-56 md:h-56 bg-dark-blue rounded-full shadow-xl p-5 flex items-center justify-center">
+    <svg class="w-full h-full">
+      <circle class="circle-background" cx="50%" cy="50%" r="75" />
+      <circle id="progress" class="circle-progress" cx="50%" cy="50%" r="75" />
+    </svg>
+    <div id="progress-text" class="absolute text-3xl md:text-4xl font-bold text-primary">0%</div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const id_projet = urlParams.get("id_projet");
+
+    const circle = document.getElementById('progress');
+    const text = document.getElementById('progress-text');
+    const radius = circle.r.baseVal.value;
+    const circumference = 2 * Math.PI * radius;
+
+    circle.style.strokeDasharray = `${circumference}`;
+    circle.style.strokeDashoffset = `${circumference}`;
+
+    function setProgress(percent) {
+      const offset = circumference - (percent / 100) * circumference;
+      circle.style.strokeDashoffset = offset;
+      text.textContent = `${percent}%`;
+    }
+
+    // Animation fluide vers un pourcentage donné
+    function animateProgressTo(targetPercent) {
+      let current = 0;
+      const interval = setInterval(() => {
+        if (current >= targetPercent) {
+          clearInterval(interval);
+        } else {
+          current++;
+          setProgress(current);
+        }
+      }, 20);
+    }
+
+    // Requête AJAX
+    $.ajax({
+      url: `/api/projets/${id_projet}/avancement`,
+      method: 'GET',
+      success: function (data) {
+        // Exemple : data = { avancement: 72 }
+        const pourcentage = parseInt(data.avancement);
+
+        // Si l'avancement est 0, on met directement la progression à 0 sans animation
+        if (pourcentage === 0) {
+          setProgress(0);
+        } else {
+          animateProgressTo(pourcentage);
+        }
+      },
+      error: function () {
+        console.error("Erreur lors du chargement de l'avancement.");
+      }
+    });
+  </script>
+
+</body>
+
+</html>

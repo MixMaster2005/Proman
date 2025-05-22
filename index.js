@@ -2,6 +2,7 @@ import express from "express";
 import http from "http";
 import cors from "cors";
 import AppRouter from "./backend/routes/Router.js";
+import FileRouter from "./backend/routes/FileRouter.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -13,7 +14,9 @@ app.use(express.json());
 
 // Setup routes for HTTP
 const appRouter = new AppRouter();
+const fileRouter = new FileRouter();
 app.use("/api", appRouter.getRouter());
+app.use("/page", fileRouter.getRouter());
 
 // Start HTTP server
 const PORT = process.env.PORT || 3000;

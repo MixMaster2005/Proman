@@ -1,4 +1,5 @@
 import mysql from "mysql2/promise"; // Utilisation de mysql2 avec Promises
+import config from "../config/config.js"; // Import des configurations
 
 class Database {
     constructor() {
@@ -9,11 +10,11 @@ class Database {
         if (!this.connection) {
             try {
                 this.connection = await mysql.createConnection({
-                    host: "localhost",
-                    port: 8080,
-                    user: "root",
-                    password: "",
-                    database: "proman"
+                    host: config.DB_HOST,
+                    port: config.DB_PORT,
+                    user: config.DB_USER,
+                    password: config.DB_PASSWORD,
+                    database: config.DB_NAME
                 });
                 console.log("✅ MySQL connecté !");
             } catch (err) {

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendrier des tâches</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',
+            secondary: '#f72585',
+            dark: '#181824',
+            'dark-blue': '#232946',
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #181824 0%, #232946 100%);
+      min-height: 100vh;
+      color: #f4f4f8;
+    }
+    /* Styles FullCalendar pour le thème sombre */
+    .fc .fc-toolbar-title {
+        color: #f4f4f8;
+    }
+    .fc .fc-button-primary {
+        background-color: #3b82f6; /* primary */
+        border-color: #3b82f6;
+        color: white;
+    }
+    .fc .fc-button-primary:hover {
+        background-color: #2563eb; /* primary-darker */
+        border-color: #2563eb;
+    }
+    .fc .fc-daygrid-day-number {
+        color: #a0aec0; /* gray-500 */
+    }
+    .fc .fc-col-header-cell-cushion {
+        color: #e2e8f0; /* gray-300 */
+    }
+    .fc-theme-standard .fc-list-day-cushion, .fc-theme-standard .fc-list-table td {
+        background-color: #232946; /* dark-blue */
+    }
+    .fc .fc-list-event:hover td {
+        background-color: #181824; /* dark */
+    }
+    .fc-event {
+        border-radius: 4px;
+    }
+  </style>
+</head>
+
+<body class="flex flex-col items-center p-4 md:p-6">
+  <h2 class="text-2xl md:text-3xl font-bold mb-6 text-center">Calendrier interactif des tâches</h2>
+  <div id="calendar" class="w-full max-w-4xl bg-dark-blue p-4 rounded-lg shadow-xl text-sm md:text-base"></div>
+
+  <script>
+    $(document).ready(function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const id_projet = urlParams.get("id_projet");
+
+      // Charger les données des tâches depuis l'API
+      $.ajax({
+        url: `/api/projets/${id_projet}/calendrier`,
+        method: 'GET',
+        success: function (data) {
+          // Transformer les données pour FullCalendar
+          const events = data.map(task => ({
+            title: task.name,
+            start: task.start,
+            end: task.end,
+            color: task.statut === 1 ? '#4CAF50' : '#FF5722' // Vert pour terminé, rouge pour non terminé
+          }));
+
+          // Initialiser FullCalendar
+          const calendarEl = document.getElementById('calendar');
+          const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'fr', // Langue française
+            headerToolbar: {
+              left: 'prev,next today',
+              center: 'title',
+              right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: events, // Ajouter les tâches comme événements
+            eventClick: function (info) {
+              alert(`Tâche : ${info.event.title}\nDébut : ${info.event.start.toLocaleDateString()}\nFin : ${info.event.end ? info.event.end.toLocaleDateString() : 'Non spécifiée'}`);
+            }
+          });
+
+          calendar.render();
+        },
+        error: function () {
+          console.error("Erreur lors du chargement du calendrier.");
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

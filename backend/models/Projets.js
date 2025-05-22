@@ -8,8 +8,9 @@ class Projets extends Model {
     async create(nom, dateDebut) {
         const sql = "INSERT INTO projets (nom_projet, date_debut) VALUES (?, ?)";
         const result = await this.db.query(sql, [nom, dateDebut]);
-        return result.affectedRows > 0;
+        return result.insertId; // Renvoie l'ID du projet inséré
     }
+
 
     async read() {
         const sql = "SELECT * FROM projets";
@@ -32,6 +33,10 @@ class Projets extends Model {
         const sql = "DELETE FROM projets WHERE id_projet = ?";
         const result = await this.db.query(sql, [id]);
         return result.affectedRows > 0;
+    }
+    async readByContributeur(id_contributeur) {
+        const sql = "SELECT * FROM projets p INNER JOIN collaborer c ON p.id_projet = c.id_projet WHERE c.id_contributeur = ?";
+        return await this.db.query(sql, [id_contributeur]);
     }
 }
 

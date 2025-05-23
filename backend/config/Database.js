@@ -9,11 +9,11 @@ class Database {
         if (!this.connection) {
             try {
                 this.connection = await mysql.createConnection({
-                    host: "localhost",
-                    port: 8080,
-                    user: "root",
-                    password: "",
-                    database: "proman"
+                    host: "sql12.freesqldatabase.com",
+                    port: 3306,
+                    user: "sql12780541",
+                    password: "U7LsUna5KW",
+                    database: "sql12780541"
                 });
                 console.log("✅ MySQL connecté !");
             } catch (err) {
